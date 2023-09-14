@@ -1,18 +1,16 @@
-#if !USE_JOBS
+#if !USE_I_JOB_ENTITY
 using Unity.Burst;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using Random = Unity.Mathematics.Random;
 
+/// <summary>
+/// Iterate using SystemAPI
+/// See https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/systems-systemapi-query.html
+/// </summary>
 public partial struct UfoMovementSystem_SystemAPI : ISystem
 {
-    private Random _random;
-
-    public void OnCreate(ref SystemState state)
-    {
-        _random = new Random((uint)SystemAPI.Time.ElapsedTime + 1);
-    }
-
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
@@ -21,9 +19,12 @@ public partial struct UfoMovementSystem_SystemAPI : ISystem
             transform.ValueRW = transform.ValueRW.Translate(
                 transform.ValueRW.Forward() * movement.ValueRO.Speed * SystemAPI.Time.DeltaTime);
 
-            if (_random.NextFloat() > 0.98f)
+            var n = noise.snoise(transform.ValueRO.Position);
+            if (n > 0.5f)
             {
-                transform.ValueRW = transform.ValueRW.RotateY(_random.NextInt(0, 360));
+                // use snoise instead of random, to allow threading
+                var rotation = noise.snoise(new float4(transform.ValueRO.Position * 100f, 0.5f));
+                transform.ValueRW = transform.ValueRW.RotateY(rotation);
             }
         }
     }

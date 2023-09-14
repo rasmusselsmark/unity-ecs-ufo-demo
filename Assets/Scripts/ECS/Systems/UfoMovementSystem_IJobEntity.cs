@@ -1,42 +1,18 @@
-#if USE_JOBS
+#if USE_I_JOB_ENTITY
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 using Random = Unity.Mathematics.Random;
 
-[RequireMatchingQueriesForUpdate]
-public partial class UfoMovementSystem_IJobEntity : SystemBase
+/// <summary>
+/// Iterate using IJobEntity for parallel jobs
+/// See https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/iterating-data-ijobentity.html
+/// </summary>
+[BurstCompile]
+public partial struct UfoMovementSystem_IJobEntity : ISystem
 {
-    private EntityQuery query;
-
     [BurstCompile]
-    partial struct UfoMovementJob : IJobEntity
-    {
-        public float deltaTime;
-        public Random random;
-
-        void Execute(ref LocalTransform transform, in MovementData movement)
-        {
-            transform = transform.Translate(transform.Forward() * movement.Speed * deltaTime);
-            
-            if (random.NextFloat() > 0.98f)
-            {
-                transform = transform.RotateY(random.NextInt(0, 360));
-            }
-        }
-    }
-    
-    protected override void OnCreate()
-    {
-        // Query for entities with MovementData component
-        query = GetEntityQuery
-        (
-            typeof(LocalTransform),
-            typeof(MovementData)
-        );
-    }
-
-    protected override void OnUpdate()
+    public void OnUpdate(ref SystemState state)
     {
         // Create the job
         var job = new UfoMovementJob
@@ -45,8 +21,24 @@ public partial class UfoMovementSystem_IJobEntity : SystemBase
             random = new Random((uint)SystemAPI.Time.ElapsedTime + 1),
         };
 
-        // Schedule the job using Dependency property
-        Dependency = job.ScheduleParallel(query, Dependency);
+        job.ScheduleParallel();
+    }
+}
+
+[BurstCompile]
+partial struct UfoMovementJob : IJobEntity
+{
+    public float deltaTime;
+    public Random random;
+
+    void Execute(ref LocalTransform transform, in MovementData movement)
+    {
+        transform = transform.Translate(transform.Forward() * movement.Speed * deltaTime);
+
+        if (random.NextFloat() > 0.98f)
+        {
+            transform = transform.RotateY(random.NextInt(0, 360));
+        }
     }
 }
 #endif
