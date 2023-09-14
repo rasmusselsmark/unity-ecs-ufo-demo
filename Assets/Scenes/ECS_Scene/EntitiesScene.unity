@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 469945309}
   - component: {fileID: 469945310}
   m_Layer: 0
-  m_Name: Spawner
+  m_Name: UfoSpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -168,7 +168,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Prefab: {fileID: 2532605959527155276, guid: a8c0fd1246467480fa651764b70c26af, type: 3}
-  Count: 15000
+  Count: 2500
   RangeX: 20
   RangeY: 10
   RangeZ: 20

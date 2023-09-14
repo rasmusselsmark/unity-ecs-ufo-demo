@@ -10,20 +10,18 @@ public partial struct UfoSpawnerSystem : ISystem, ISystemStartStop
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate<Spawner>();
+        state.RequireForUpdate<UfoSpawnerData>();
     }
 
     public void OnStartRunning(ref SystemState state)
     {
-        foreach (var spawner in SystemAPI.Query<RefRO<Spawner>>())
-        {
-            var random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
+        var spawner = SystemAPI.GetSingleton<UfoSpawnerData>();
+        var random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
 
-            Debug.Log($"Spawning {spawner.ValueRO.Count} ufos!");
-            for (var i = 0; i < spawner.ValueRO.Count; i++)
-            {
-                SpawnUfo(ref state, spawner, ref random);
-            }
+        Debug.Log($"Spawning {spawner.Count} ufos!");
+        for (var i = 0; i < spawner.Count; i++)
+        {
+            SpawnUfo(ref state, spawner, ref random);
         }
     }
 
@@ -31,12 +29,12 @@ public partial struct UfoSpawnerSystem : ISystem, ISystemStartStop
     {
     }
 
-    private void SpawnUfo(ref SystemState state, RefRO<Spawner> spawner, ref Unity.Mathematics.Random random)
+    private void SpawnUfo(ref SystemState state, UfoSpawnerData ufoSpawnerData, ref Unity.Mathematics.Random random)
     {
-        var ufo = state.EntityManager.Instantiate(spawner.ValueRO.Prefab);
+        var ufo = state.EntityManager.Instantiate(ufoSpawnerData.Prefab);
         var position = random.NextFloat3(
-                new float3(-spawner.ValueRO.RangeX, 1, -spawner.ValueRO.RangeZ),
-                new float3(spawner.ValueRO.RangeX, spawner.ValueRO.RangeY, spawner.ValueRO.RangeZ));
+                new float3(-ufoSpawnerData.RangeX, 1, -ufoSpawnerData.RangeZ),
+                new float3(ufoSpawnerData.RangeX, ufoSpawnerData.RangeY, ufoSpawnerData.RangeZ));
 
         var transform = LocalTransform.FromPositionRotation(
             position,
@@ -46,7 +44,7 @@ public partial struct UfoSpawnerSystem : ISystem, ISystemStartStop
         SystemAPI.SetComponent(ufo, transform);
         SystemAPI.SetComponent(ufo, new MovementData
         {
-            Speed = random.NextFloat(1f, spawner.ValueRO.MaxSpeed),
+            Speed = random.NextFloat(1f, ufoSpawnerData.MaxSpeed),
         });
     }
 }

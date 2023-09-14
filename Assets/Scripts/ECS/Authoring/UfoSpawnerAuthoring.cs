@@ -1,7 +1,7 @@
 using UnityEngine;
 using Unity.Entities;
 
-class SpawnerAuthoring : MonoBehaviour
+class UfoSpawnerAuthoring : MonoBehaviour
 {
     public GameObject Prefab;
     public int Count;
@@ -11,14 +11,14 @@ class SpawnerAuthoring : MonoBehaviour
     public float MaxSpeed = 3f;
 }
 
-class SpawnerBaker : Baker<SpawnerAuthoring>
+class SpawnerBaker : Baker<UfoSpawnerAuthoring>
 {
-    public override void Bake(SpawnerAuthoring authoring)
+    public override void Bake(UfoSpawnerAuthoring authoring)
     {
         var entity = GetEntity(TransformUsageFlags.None);
         var prefab = GetEntity(authoring.Prefab, TransformUsageFlags.None);
 
-        AddComponent(entity, new Spawner
+        AddComponent(entity, new UfoSpawnerData
         {
             Prefab = prefab,
             Count = authoring.Count,
